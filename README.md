@@ -42,8 +42,8 @@ gpg --verify --keyring ./gnu-keyring.gpg hello-<version>.tar.gz.sig hello-<versi
 
 Freshness: each hour, ftp.gnu.org writes the time, in epoch seconds, to
 `mirror-updated-timestamp.txt`. The mirror copies this file from upstream, and it does not
-write a timestamp. This command shows the number of seconds since ftp.gnu.org wrote the
-time in the copy that the mirror serves:
+write a timestamp. This command shows the number of seconds between the time in the copy
+that the mirror serves and the time of the command:
 
 ```sh
 echo $(( $(date +%s) - $(curl -s https://gnu.katoptra.org/mirror-updated-timestamp.txt) )) seconds behind ftp.gnu.org
@@ -69,10 +69,11 @@ flowchart LR
 
 - **The identity.** `SOURCE` is a secondary mirror, `mirror.csclub.uwaterloo.ca`. GNU
   recommends a secondary mirror, to decrease the load on `ftp.gnu.org`. `HOST` and `BUCKET`
-  are the domain and the bucket.
+  are the hostname and the bucket.
 - **The limits.** If upstream is more than 350 GB (`CEILING_GB`), the run stops before it
-  moves a file. If a listing has less than 40,000 lines (`LIST_FLOOR`), the run also stops.
-  A short listing is not full, and the engine must not delete files because of it.
+  moves a file. If a listing does not have more than 40,000 lines (`LIST_FLOOR`), the run
+  also stops. A short listing is not full, and the engine must not delete files because of
+  it.
 - **Directory pages.** When `INDEX` has a value, the engine makes a page for each
   directory. `PAGE_FOOT` is the last line of each page. This line identifies the mirror and
   tells how frequently the mirror gets an update. It also gives an address for problem
@@ -86,8 +87,13 @@ flowchart LR
   finds the problem.
 
 [lib's README](https://github.com/katoptra/lib#the-rsync-engine) tells how the engine uses
-each of these values. It also gives all the other parts, for example the list diff, the
-batches, the state file and the daily reconcile.
+each of these values. It also has the only description of all the other parts, for
+example:
+
+- The list diff
+- The batches
+- The state file
+- The daily reconcile.
 
 ## Want your own?
 
@@ -95,11 +101,11 @@ batches, the state file and the daily reconcile.
 
 1. Fork [katoptra/gnu](https://github.com/katoptra/gnu).
 2. Change `HOST`, `BUCKET` and the e-mail address in `PAGE_FOOT` to your values.
-3. Keep `SOURCE`, or set it to a different secondary mirror from
+3. Keep `SOURCE`. To use a different secondary mirror, set `SOURCE` to one from
    [GNU's mirror list](https://www.gnu.org/prep/ftp.html). That mirror must have the full
    tree.
-4. Before the first run, compare the listing of your `SOURCE` with the listing of the
-   primary one time.
+4. Before the first run, compare the listing of your `SOURCE` with the listing of
+   `ftp.gnu.org` one time.
 
 ### 2. Storage
 
@@ -107,12 +113,12 @@ batches, the state file and the daily reconcile.
 |---|---|
 | An R2 bucket, or a different S3-compatible bucket | It contains the tree, its pages and their state: approximately 275 GB. On R2, the storage cost is $4.12 a month, at $0.015 for each GB-month. |
 | An API token with Object Read & Write, for that bucket only | It gives the three `AWS_*` values in step 3. |
-| A custom domain on the bucket. This domain is `HOST`. | Clients and the read-back checks get the files from it. |
+| A custom domain on the bucket. Its hostname is `HOST`. | Clients and the read-back checks get the files from it. |
 
-R2 has no symlinks. Thus, the engine keeps each path that a symlink gives access to as an
-object. The three trees `/icecat/`, `/windows/` and `/libc/` are 31 GB, and the bucket
-contains each of them two times. As a result, clients get these trees from this mirror the
-same as from all other GNU mirrors.
+R2 has no symlinks. Thus, at the path of each symlink, the engine stores a copy of the files
+that the symlink points to. The three trees `/icecat/`, `/windows/` and `/libc/` are 31 GB,
+and the bucket contains each of them two times. As a result, clients get these trees from
+this mirror the same as from all other GNU mirrors.
 
 With the `aws.config` of the image, the AWS CLI sends each file of less than 4 GiB as one
 PutObject. The largest file in the tree is 1.51 GB. Refer to
@@ -153,8 +159,8 @@ set these rules one time, out of the pipeline. The pipeline does not change them
    commands:
 
    ```sh
-   task check                # render each command of the pipeline in the image, then diff it against render.txt
-   task run -- task list     # get a listing of the secondary with no credentials, then read .run/upstream.txt
+   task check                # render each command of the pipeline in the image, then compare it with render.txt
+   task run -- task list     # get a listing of the secondary mirror with no credentials, then read .run/upstream.txt
    ```
 
 2. Before the first run, pause the healthcheck.
@@ -163,8 +169,8 @@ set these rules one time, out of the pipeline. The pipeline does not change them
 
 The first run finds an empty bucket. It uses the full tree as the delta and does four
 batches. Then it starts the next run, and the chain continues until the full delta is in
-the bucket. The first fill is approximately 275 GB in approximately 18 runs. After the
-first fill, each run moves only the delta, usually a small number of files.
+the bucket. The bucket gets approximately 275 GB in approximately 18 runs. After these
+runs, each run moves only the delta, usually a small number of files.
 
 This repository does not start runs. To start runs at set times, use one of these two
 methods:
@@ -172,8 +178,9 @@ methods:
 - Add a `schedule:` trigger to `.github/workflows/sync.yml`, at a time that you select.
 - Dispatch the workflow from an external scheduler. This mirror uses this method.
 
-The time of the run is not important for the reconcile. A run does a reconcile of the
-bucket against the state when the interval since the last reconcile is 24 h or more.
+The time of the run is not important for the reconcile. In a reconcile, a run compares the
+bucket with the state. A run does a reconcile if it is 23.5 hours or more since a run did
+the last reconcile.
 
 ## Operating it
 
@@ -203,13 +210,13 @@ each failure of an engine verb, and how to correct it. These items are for this 
 
 - **`split` stopped the run.** The upstream tree is more than 350 GB. The mirror gets no
   update until you increase `CEILING_GB`. This also increases the storage cost.
-- **`list` stopped the run.** The listing had less than 40,000 lines. Start the run again.
-  If it stops again, examine the secondary. You can set `SOURCE` to a different secondary
-  from GNU's mirror list.
+- **`list` stopped the run.** The listing did not have more than 40,000 lines. Start the
+  run again. If it stops again, examine the secondary mirror. You can set `SOURCE` to a
+  different secondary mirror from GNU's mirror list.
 - **The canary check stopped the run.** Compare the zone with the three rules in step 4.
-- **`fresh` stopped the run.** `mirror-updated-timestamp.txt` did not change for 24 hours.
-  The secondary stopped its sync, but its rsync server continues to operate. Set `SOURCE`
-  to a different secondary from GNU's mirror list.
+- **`fresh` stopped the run.** `mirror-updated-timestamp.txt` did not change for more than
+  24 hours. The secondary mirror stopped its sync, but its rsync server continues to
+  operate. Set `SOURCE` to a different secondary mirror from GNU's mirror list.
 - **The run did not start.** This repository does not start runs. Examine the scheduler
   first ([katoptra/dispatch](https://github.com/katoptra/dispatch#when-something-goes-wrong)).
   Then use `gh workflow list --all`. For the sync workflow, it shows `active`, or
@@ -218,13 +225,12 @@ each failure of an engine verb, and how to correct it. These items are for this 
 
 ## Reference
 
-For each listing, rsync exits with code 23. Approximately 150 symlinks in the tree point to
-no file. For each of them, rsync writes a line on stderr, and it puts all the other files
-in the listing. GNU's mirror page tells mirrors to ignore errors of this type. Thus, the
-engine accepts exit 23.
+rsync gives the exit code 23 for each listing. Approximately 150 symlinks in the tree point
+to no file. For each of them, rsync writes a line on stderr, and it puts all the other
+files in the listing. GNU's mirror page tells mirrors to ignore errors of this type. Thus,
+the engine accepts the exit code 23.
 
-rsync also exits 23 when it cannot read a directory. Then the engine deletes the files of
-that directory, until the secondary serves them again
+rsync also gives this code when it cannot read a directory
 ([lib, The rsync engine](https://github.com/katoptra/lib#the-rsync-engine)). `LIST_FLOOR`
 stops a run if the listing decreases by more than approximately 3,800 files.
 
