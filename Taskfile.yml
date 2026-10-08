@@ -19,6 +19,7 @@ vars:
   # explanatory text and no link but a bug-reporting one: an address that takes mail.
   PAGE_FOOT: 'A mirror of https://ftp.gnu.org/gnu/, updated twice a day. Sizes in bytes, times as upstream lists them. Report a problem to <a href="mailto:gnu@katoptra.org">gnu@katoptra.org</a>.'
   CANARY: aspell/dict/0index.html                  # 8 plain http:// links, which the zone's HTML rewriters would alter
+  FRESH_KEY: mirror-updated-timestamp.txt          # ftp.gnu.org's clock, Unix time; a day old fails the run
 
 env:
   AWS_CONFIG_FILE: '{{.ROOT_DIR}}/aws.config'

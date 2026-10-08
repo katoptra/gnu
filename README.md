@@ -74,6 +74,9 @@ What this mirror sets, in [`Taskfile.yml`](Taskfile.yml):
 - **The canary.** `CANARY` is `aspell/dict/0index.html`, whose plain `http://` links any
   of Cloudflare's HTML rewriters would alter. After every run the engine reads it through
   the domain as a Perl client and compares it byte for byte with the bucket's copy.
+- **Freshness.** `FRESH_KEY` is `mirror-updated-timestamp.txt`, where ftp.gnu.org writes
+  its clock. After every run the engine reads it through the domain and fails the run once
+  it is a day old, before GNU's monitor calls the mirror old at 28 hours.
 
 Everything else, from the list diff and the batching to the state file and the daily
 reconcile, is documented once in [lib's README](https://github.com/katoptra/lib#the-rsync-engine).
@@ -167,6 +170,8 @@ scheduler that stopped.
   from GNU's list can replace it.
 - **The canary failed.** The domain served bytes the bucket does not hold, or refused a
   Perl client: a zone rule is missing or was widened. The bucket is intact.
+- **The clock is a day old.** `mirror-updated-timestamp.txt` stopped moving: the secondary
+  has stopped syncing while still answering rsync. Point `SOURCE` at another from GNU's list.
 - **A `.tar.gz` came back with a `Content-Encoding`.** Clients would unpack it in flight.
   Look at the AWS CLI version in lib's lock.
 - **The run did not start.** Check the scheduler, then `gh workflow view sync.yml` for a
