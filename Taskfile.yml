@@ -1,25 +1,49 @@
-# Mirror GNU's release tree, ftp.gnu.org/gnu, into a Cloudflare R2 bucket twice a day, from
-# a list diff: a secondary's listing against the state the last run left in the bucket. The
-# toolbox, which starts a run, contains it in an image, resolves its secrets, renders and
-# checks it, and reports it, and the rsync engine, which moves the bytes, draws the
-# directory pages, reads them back and orders the pipeline, are katoptra/lib's, included
-# below at v2 and flattened into this file. What is here is the mirror's identity and
-# nothing else. R2 is reached through the AWS CLI, configured by the three AWS_* variables
-# op.env resolves from 1Password, which cross into the image by name.
+# This mirror keeps a copy of GNU's release tree, ftp.gnu.org/gnu, in a Cloudflare R2
+# bucket. Twice a day, a run compares the listing of a secondary mirror with the state that
+# the last run put in the bucket (a list diff).
+#
+# The toolbox and the rsync engine are from katoptra/lib. Its README shows the items that
+# each one supplies. This file includes them at v2, with `flatten: true`.
+#
+# The values in this file are for this mirror only:
+#   - SOURCE, HOST and BUCKET identify the mirror.
+#   - CEILING_GB and LIST_FLOOR are the limits for a run.
+#   - INDEX and PAGE_FOOT are for the directory pages.
+#   - CANARY and FRESH_KEY are for the checks at the end of each run.
+#   - NAME and DESC are for the menu.
+#
+# The secrets are the names in op.env. The toolbox gets their values from the vault in
+# 1Password. It gives each value to the container through the environment. Only the name
+# is on the command line.
 version: '3'
 
 vars:
-  SOURCE: rsync://mirror.csclub.uwaterloo.ca/gnu/   # a secondary, as GNU asks; about 2 h behind ftp.gnu.org
-  HOST: gnu.katoptra.org                           # a fork changes this line and the address in PAGE_FOOT
-  BUCKET: gnu                                      # bucket name; objects sit at its root under GNU's own paths
-  CEILING_GB: 350                                  # refuse to run past this many decimal GB upstream; 274 GB in September 2026
-  LIST_FLOOR: 40000                                # a listing under this many lines is a truncated one; the tree is ~43,850 files
-  INDEX: '{{.HOST}}.directory.index.html'          # the page drawn in every directory; no upstream path can carry the name
-  # The line every directory page closes on. GNU's mirror guidelines allow short,
-  # explanatory text and no link but a bug-reporting one: an address that takes mail.
+  # SOURCE is a secondary mirror, which GNU recommends. It gets changes approximately 2 h
+  # after ftp.gnu.org.
+  SOURCE: rsync://mirror.csclub.uwaterloo.ca/gnu/
+  HOST: gnu.katoptra.org  # a fork changes this line and the address in PAGE_FOOT.
+  # BUCKET is the name of the bucket. The objects are at its root, and their keys are GNU's
+  # paths.
+  BUCKET: gnu
+  # If upstream has more than this number of decimal GB, the run stops with an error.
+  # Upstream had 274 GB in September 2026.
+  CEILING_GB: 350
+  # A listing must have more lines than this value, or it is a truncated listing. The tree
+  # has approximately 43,850 files.
+  LIST_FLOOR: 40000
+  # INDEX is the key suffix of the directory pages. The Transform Rule of the zone uses only
+  # this name. If an upstream file has this name, the bucket keeps the page, not the file.
+  INDEX: '{{.HOST}}.directory.index.html'
+  # PAGE_FOOT is the last line of each directory page. In GNU's mirror guidelines, text
+  # must be short and "strictly explanatory". The only link that is permitted is a link for
+  # bug reports. That link is an email address, which must receive mail.
   PAGE_FOOT: 'A mirror of https://ftp.gnu.org/gnu/, updated twice a day. Sizes in bytes, times as upstream lists them. Report a problem to <a href="mailto:gnu@katoptra.org">gnu@katoptra.org</a>.'
-  CANARY: aspell/dict/0index.html                  # 8 plain http:// links, which the zone's HTML rewriters would alter
-  FRESH_KEY: mirror-updated-timestamp.txt          # ftp.gnu.org's clock, Unix time; a day old fails the run
+  # CANARY is a file with 8 http:// links. If the zone uses an HTML rewriter, the rewriter
+  # can change these links.
+  CANARY: aspell/dict/0index.html
+  # FRESH_KEY is the file with ftp.gnu.org's clock, in Unix time. If that time is more than
+  # 24 h before the check, the run stops with an error.
+  FRESH_KEY: mirror-updated-timestamp.txt
 
 includes:
   toolbox:
