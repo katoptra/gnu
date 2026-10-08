@@ -212,8 +212,9 @@ each failure of an engine verb, and how to correct it. These items are for this 
   to a different secondary from GNU's mirror list.
 - **The run did not start.** This repository does not start runs. Examine the scheduler
   first ([katoptra/dispatch](https://github.com/katoptra/dispatch#when-something-goes-wrong)).
-  Then examine the output of `gh workflow view sync.yml` for a sign that a person disabled
-  the workflow. Until you find the cause, start each run with `gh workflow run sync.yml`.
+  Then use `gh workflow list --all`. For the sync workflow, it shows `active`, or
+  `disabled_manually` if a person disabled it. Until you find the cause, start each run with
+  `gh workflow run sync.yml`.
 
 ## Reference
 
@@ -231,5 +232,6 @@ The root of the GNU tree has dot-files, `.header.shtml` and `.message`, and it h
 `.state/`. [lib, Storage](https://github.com/katoptra/lib#storage) gives the rules for
 dot-files and for `.state/`.
 
-The license is MIT. [Josh Vaughen](https://ijosh.com) made this repository. You can send a
-pull request.
+Pull requests are welcome.
+
+MIT licensed. Built by [Josh Vaughen](https://ijosh.com).
