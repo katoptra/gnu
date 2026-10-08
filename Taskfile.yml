@@ -3,30 +3,30 @@
 # the last run put in the bucket (a list diff).
 #
 # The toolbox and the rsync engine are from katoptra/lib. Its README shows the items that
-# each one supplies. This file includes them at v2, with `flatten: true`.
+# each one supplies. This file includes them below the vars, at v2, with `flatten: true`.
 #
 # The values in this file are for this mirror only:
 #   - SOURCE, HOST and BUCKET identify the mirror.
 #   - CEILING_GB and LIST_FLOOR are the limits for a run.
 #   - INDEX and PAGE_FOOT are for the directory pages.
-#   - CANARY and FRESH_KEY are for the checks at the end of each run.
+#   - CANARY and FRESH_KEY are for the checks at the end of each run. The engine also sends
+#     the FRESH_KEY file to the bucket last.
 #   - NAME and DESC are for the menu.
 #
 # The secrets are the names in op.env. The toolbox gets their values from the vault in
-# 1Password. It gives each value to the container through the environment. Only the name
-# is on the command line.
+# 1Password. It gives each value to the image with its name, not on a command line.
 version: '3'
 
 vars:
   # SOURCE is a secondary mirror, which GNU recommends. It gets changes approximately 2 h
   # after ftp.gnu.org.
   SOURCE: rsync://mirror.csclub.uwaterloo.ca/gnu/
-  HOST: gnu.katoptra.org  # a fork changes this line and the address in PAGE_FOOT.
+  HOST: gnu.katoptra.org  # A fork changes this line and the address in PAGE_FOOT.
   # BUCKET is the name of the bucket. The objects are at its root, and their keys are GNU's
   # paths.
   BUCKET: gnu
   # If upstream has more than this number of decimal GB, the run stops with an error.
-  # Upstream had 274 GB in September 2026.
+  # Upstream had approximately 275 GB in September 2026.
   CEILING_GB: 350
   # A listing must have more lines than this value, or it is a truncated listing. The tree
   # has approximately 43,850 files.
@@ -42,7 +42,8 @@ vars:
   # can change these links.
   CANARY: aspell/dict/0index.html
   # FRESH_KEY is the file with ftp.gnu.org's clock, in Unix time. If that time is more than
-  # 24 h before the check, the run stops with an error.
+  # 24 h before the check, the run stops with an error. The engine also sends this file to
+  # the bucket last.
   FRESH_KEY: mirror-updated-timestamp.txt
 
 includes:
