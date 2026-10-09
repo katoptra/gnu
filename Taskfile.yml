@@ -1,6 +1,6 @@
 # This mirror keeps a copy of GNU's release tree, ftp.gnu.org/gnu, in a Cloudflare R2
-# bucket. Twice a day, a run compares the listing of a secondary mirror with the state that
-# the last run put in the bucket (a list diff).
+# bucket. Twice a day, a run compares the listing of ftp.gnu.org with the state that the
+# last run put in the bucket (a list diff).
 #
 # The toolbox and the rsync engine are from katoptra/lib. Its README shows the items that
 # each one supplies. This file includes them below the vars, at v2, with `flatten: true`.
@@ -18,9 +18,9 @@
 version: '3'
 
 vars:
-  # SOURCE is a secondary mirror, which GNU recommends. It gets changes approximately 2 h
-  # after ftp.gnu.org.
-  SOURCE: rsync://mirror.csclub.uwaterloo.ca/gnu/
+  # SOURCE is ftp.gnu.org, the primary site of GNU. A secondary mirror gets a change
+  # approximately 2 h after ftp.gnu.org.
+  SOURCE: rsync://ftp.gnu.org/gnu/
   HOST: gnu.katoptra.org  # A fork changes this line and the address in PAGE_FOOT.
   # BUCKET is the name of the bucket. The objects are at its root, and their keys are GNU's
   # paths.

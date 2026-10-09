@@ -20,7 +20,7 @@
 This mirror copies `https://ftp.gnu.org/gnu/` into Cloudflare R2. It serves each path of
 that tree at the root of `https://gnu.katoptra.org/`. This includes the trees that symlinks
 point to. The mirror contains approximately 44,000 files and 275 GB, with a page for each
-directory. Twice a day, it gets a listing from a secondary mirror of GNU. Then it moves only
+directory. Twice a day, it gets a listing from `ftp.gnu.org`. Then it moves only
 the changes, and it makes the pages again for each directory with a change.
 
 ## How to use
@@ -67,9 +67,9 @@ flowchart LR
 
 [`Taskfile.yml`](Taskfile.yml) sets these values of the mirror:
 
-- **The identity.** `SOURCE` is a secondary mirror, `mirror.csclub.uwaterloo.ca`. GNU
-  recommends a secondary mirror, to decrease the load on `ftp.gnu.org`. `HOST` and `BUCKET`
-  are the hostname and the bucket.
+- **The identity.** `SOURCE` is `ftp.gnu.org`, the primary site of GNU. A secondary mirror
+  gets a change approximately 2 h after `ftp.gnu.org`. `HOST` and `BUCKET` are the hostname
+  and the bucket.
 - **The limits.** If upstream is more than 350 GB (`CEILING_GB`), the run stops before it
   moves a file. If a listing does not have more than 40,000 lines (`LIST_FLOOR`), the run
   also stops. A short listing is not full, and the engine must not delete files because of
@@ -101,11 +101,12 @@ example:
 
 1. Fork [katoptra/gnu](https://github.com/katoptra/gnu).
 2. Change `HOST`, `BUCKET` and the e-mail address in `PAGE_FOOT` to your values.
-3. Keep `SOURCE`. To use a different secondary mirror, set `SOURCE` to one from
-   [GNU's mirror list](https://www.gnu.org/prep/ftp.html). That mirror must have the full
-   tree.
-4. Before the first run, compare the listing of your `SOURCE` with the listing of
-   `ftp.gnu.org` one time.
+3. Keep `SOURCE`, or set it to a secondary mirror. GNU recommends a secondary mirror, to
+   decrease the load on `ftp.gnu.org`. Use an rsync address from
+   [GNU's mirror page](https://www.gnu.org/server/mirror.html). That mirror must have the
+   full tree.
+4. If you use a secondary mirror, compare its listing with the listing of `ftp.gnu.org` one
+   time before the first run.
 
 ### 2. Storage
 
@@ -160,7 +161,7 @@ set these rules one time, out of the pipeline. The pipeline does not change them
 
    ```sh
    task check                # render each command of the pipeline in the image, then compare it with render.txt
-   task run -- task list     # get a listing of the secondary mirror with no credentials, then read .run/upstream.txt
+   task run -- task list     # get a listing of ftp.gnu.org with no credentials, then read .run/upstream.txt
    ```
 
 2. Before the first run, pause the healthcheck.
@@ -211,12 +212,13 @@ each failure of an engine verb, and how to correct it. These items are for this 
 - **`split` stopped the run.** The upstream tree is more than 350 GB. The mirror gets no
   update until you increase `CEILING_GB`. This also increases the storage cost.
 - **`list` stopped the run.** The listing did not have more than 40,000 lines. Start the
-  run again. If it stops again, examine the secondary mirror. You can set `SOURCE` to a
-  different secondary mirror from GNU's mirror list.
+  run again. If it stops again, examine `ftp.gnu.org`. If the connection to `ftp.gnu.org`
+  fails for more than one day, you can set `SOURCE` to a secondary mirror from GNU's mirror
+  page.
 - **The canary check stopped the run.** Compare the zone with the three rules in step 4.
 - **`fresh` stopped the run.** `mirror-updated-timestamp.txt` did not change for more than
-  24 hours. The secondary mirror stopped its sync, but its rsync server continues to
-  operate. Set `SOURCE` to a different secondary mirror from GNU's mirror list.
+  24 hours. Thus, `ftp.gnu.org` does not update its clock. Do not change this repository.
+  Examine `ftp.gnu.org`.
 - **The run did not start.** This repository does not start runs. Examine the scheduler
   first ([katoptra/dispatch](https://github.com/katoptra/dispatch#when-something-goes-wrong)).
   Then use `gh workflow list --all`. For the sync workflow, it shows `active`, or
