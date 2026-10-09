@@ -23,7 +23,7 @@ echo "due: RECONCILE=$r RECONCILE_HOURS=$h, last reconcile $ago: $(test -f /work
 task: [list] rm -f /work/.run/publish.txt /work/.run/labeled.txt /work/.run/orphans.txt /work/.run/unlanded.txt /work/.run/fresh.txt
 task: [list] mkdir -p /work/.run /work/staging
 task: [retry] for i in 1 2 3 4 5; do
-  rc=0; ( rsync --timeout=300 --contimeout=60 --no-h -rL --list-only rsync://mirror.csclub.uwaterloo.ca/gnu/ > /work/.run/listing.txt ) || rc=$?   # subshell: an exit in CMD cannot stop the loop. ||: the errexit of Task cannot stop it.
+  rc=0; ( rsync --timeout=300 --contimeout=60 --no-h -rL --list-only rsync://ftp.gnu.org/gnu/ > /work/.run/listing.txt ) || rc=$?   # subshell: an exit in CMD cannot stop the loop. ||: the errexit of Task cannot stop it.
   case $rc in 0|23|24) exit 0;; 5|10|12|30|35) ;; *) exit $rc;; esac
   test $i -lt 5 || break
   s=$((15 * 2 ** i + RANDOM % (2 * 15 + 1))); echo "rsync exit $rc, retry $i in ${s}s" >&2; sleep $s
@@ -76,7 +76,7 @@ task: [split] awk -F'\t' -v OFS='\t' -v CAP=$((4 * 1000000000)) -v DIR=/work/.ru
 task: [prepare] mkdir -p /work/.run/tl
 task: [prepare] printf '%s\n' tlpkg/texlive.tlpdb.xz tlpkg/texlive.tlpdb.sha512 tlpkg/texlive.tlpdb.sha512.asc tlpkg/gpg/pubring.gpg > /work/.run/tl/files.txt
 task: [retry] for i in 1 2 3 4 5; do
-  rc=0; ( rsync --timeout=300 --contimeout=60 --no-h -Lt --files-from=/work/.run/tl/files.txt rsync://mirror.csclub.uwaterloo.ca/gnu// /work/.run/tl/ ) || rc=$?   # subshell: an exit in CMD cannot stop the loop. ||: the errexit of Task cannot stop it.
+  rc=0; ( rsync --timeout=300 --contimeout=60 --no-h -Lt --files-from=/work/.run/tl/files.txt rsync://ftp.gnu.org/gnu// /work/.run/tl/ ) || rc=$?   # subshell: an exit in CMD cannot stop the loop. ||: the errexit of Task cannot stop it.
   case $rc in 0|23|24) exit 0;; 5|10|12|30|35) ;; *) exit $rc;; esac
   test $i -lt 5 || break
   s=$((15 * 2 ** i + RANDOM % (2 * 15 + 1))); echo "rsync exit $rc, retry $i in ${s}s" >&2; sleep $s
@@ -87,7 +87,7 @@ task: [prepare] cd /work/.run/tl/tlpkg && shasum -a 512 -c texlive.tlpdb.sha512 
 task: [fetch] find /work/staging -mindepth 1 -delete
 task: [fetch] cut -f1  > /work/.run/files.txt
 task: [retry] for i in 1 2 3 4 5; do
-  rc=0; ( rsync --timeout=300 --contimeout=60 --no-h -Lt --files-from=/work/.run/files.txt --ignore-missing-args rsync://mirror.csclub.uwaterloo.ca/gnu/ /work/staging/ ) || rc=$?   # subshell: an exit in CMD cannot stop the loop. ||: the errexit of Task cannot stop it.
+  rc=0; ( rsync --timeout=300 --contimeout=60 --no-h -Lt --files-from=/work/.run/files.txt --ignore-missing-args rsync://ftp.gnu.org/gnu/ /work/staging/ ) || rc=$?   # subshell: an exit in CMD cannot stop the loop. ||: the errexit of Task cannot stop it.
   case $rc in 0|23|24) exit 0;; 5|10|12|30|35) ;; *) exit $rc;; esac
   test $i -lt 5 || break
   s=$((15 * 2 ** i + RANDOM % (2 * 15 + 1))); echo "rsync exit $rc, retry $i in ${s}s" >&2; sleep $s

@@ -1,7 +1,7 @@
 # gnu
 
-The pipeline in this repository copies GNU's release tree, `ftp.gnu.org/gnu`, from a
-secondary mirror into Cloudflare R2. The mirror serves the tree at `https://gnu.katoptra.org/`.
+The pipeline in this repository copies GNU's release tree, `ftp.gnu.org/gnu`, from GNU's
+primary site into Cloudflare R2. The mirror serves the tree at `https://gnu.katoptra.org/`.
 `README.md` identifies the upstream, and it tells how to use the mirror and how to fork it.
 The README of [katoptra/lib](https://github.com/katoptra/lib) is the manual for the parts
 that all mirrors share. This file gives the rules that each change must obey.
@@ -24,9 +24,10 @@ reconcile. This can be the run at 03:42 or the run at 15:42.
   Do not set a lib var again. In an engine verb, the engine uses a root var, not a
   `KEY=value` from the command line. Thus, `MAX_BATCHES`, `BATCH_GB` and `RECONCILE` are
   not root vars.
-- **`SOURCE` must be a secondary mirror, not `ftp.gnu.org`.** GNU recommends this to each
-  mirror. Before you change `SOURCE`, get a listing of the new secondary mirror. Compare its
-  paths and sizes with the listing of `ftp.gnu.org`.
+- **`SOURCE` must be `ftp.gnu.org`, the primary site, not a secondary mirror.** A secondary
+  mirror gets a change approximately 2 h after `ftp.gnu.org`. GNU recommends a secondary
+  mirror, to decrease the load on `ftp.gnu.org`, but the owner selected the primary site. Do
+  not change `SOURCE` to a secondary mirror without the approval of the owner.
 - **Paths are GNU's, at the root of the bucket, with the dot-files.** Only the mirror uses
   the prefix `.state/` and the file name `gnu.katoptra.org.directory.index.html`. The GNU
   tree does not have these two names.
@@ -64,8 +65,8 @@ reconcile. This can be the run at 03:42 or the run at 15:42.
 - **No `Content-Encoding`.** GNU recommends no `Content-Encoding` header. On each run,
   `smoke` reads a `.tar.gz` and makes sure that it has no `Content-Encoding`.
 - **Freshness is upstream's.** `mirror-updated-timestamp.txt` contains the epoch time of
-  ftp.gnu.org, which writes it each hour. The secondary mirror copies the file, and this
-  mirror copies it from the secondary mirror. This mirror does not write a timestamp.
+  ftp.gnu.org, which writes it each hour. This mirror copies the file from ftp.gnu.org. This
+  mirror does not write a timestamp.
 - **A run failure is the only alert.** The healthchecks.io check has the cron
   `42 3,15 * * *` UTC and a grace time of 3 hours.
 
@@ -74,7 +75,7 @@ reconcile. This can be the run at 03:42 or the run at 15:42.
 - `task check` makes a render of each command of the pipeline in the image. Then it compares
   the render with `render.txt`. `task render-update` accepts a change. On each pull request,
   the check workflow does the same `task check`, with no secrets.
-- `task run -- task list` gets a listing of the secondary mirror, with no credentials. It is
+- `task run -- task list` gets a listing of `ftp.gnu.org`, with no credentials. It is
   the one check of upstream that you can do without the vault. `.run/upstream.txt` then has
   approximately 43,850 lines, and `mirror-updated-timestamp.txt` and `gnu-keyring.gpg` are
   two of them.
