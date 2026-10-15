@@ -6,9 +6,9 @@ primary site into Cloudflare R2. The mirror serves the tree at `https://gnu.kato
 The README of [katoptra/lib](https://github.com/katoptra/lib) is the manual for the parts
 that all mirrors share. This file gives the rules that each change must obey.
 
-This repository does not start runs. An external scheduler dispatches `sync.yml` at 03:42
-and 15:42 UTC. A run does `reconcile` if it is 23.5 hours or more since a run did the last
-reconcile. This can be the run at 03:42 or the run at 15:42.
+This repository does not start runs. An external scheduler dispatches `sync.yml`. Only the
+scheduler has the times of the runs. A run does `reconcile` if it is 23.5 hours or more since
+a run did the last reconcile.
 
 `Taskfile.yml` contains only the root vars and the two includes, and each verb is lib's.
 
@@ -67,8 +67,8 @@ reconcile. This can be the run at 03:42 or the run at 15:42.
 - **Freshness is upstream's.** `mirror-updated-timestamp.txt` contains the epoch time of
   ftp.gnu.org, which writes it each hour. This mirror copies the file from ftp.gnu.org. This
   mirror does not write a timestamp.
-- **A run failure is the only alert.** The healthchecks.io check has the cron
-  `42 3,15 * * *` UTC and a grace time of 3 hours.
+- **A run failure is the only alert.** The healthchecks.io check has a cron expression with
+  the same times as the slots of the mirror, in UTC, and a grace time of 3 hours.
 
 ## Verifying a change
 
