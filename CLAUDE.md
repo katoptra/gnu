@@ -29,7 +29,7 @@ a run did the last reconcile.
   mirror, to decrease the load on `ftp.gnu.org`, but the owner selected the primary site. Do
   not change `SOURCE` to a secondary mirror without the approval of the owner.
 - **Paths are GNU's, at the root of the bucket, with the dot-files.** Only the mirror uses
-  the prefix `.state/` and the file name `gnu.katoptra.org.directory.index.html`. The GNU
+  the prefix `.state/` and the file name `katoptra.org.directory.index.html`. The GNU
   tree does not have these two names.
 - **GNU's mirror guidelines are applicable to each page that the mirror serves.** Text must
   be "as short as possible, and strictly explanatory". Images and logos are not permitted.
