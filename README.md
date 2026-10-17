@@ -78,6 +78,8 @@ flowchart LR
   directory. `PAGE_FOOT` is the last line of each page. This line identifies the mirror and
   tells how frequently the mirror gets an update. It also gives an address for problem
   reports.
+  `INDEX_FILES` is `index.html index.htm`. In a directory with one of these files, the URL
+  of the directory serves that file, as on ftp.gnu.org.
 - **The canary.** `CANARY` is `aspell/dict/0index.html`. This file has plain `http://`
   links, and each HTML rewriter of Cloudflare changes such links.
 - **Freshness.** `FRESH_KEY` is `mirror-updated-timestamp.txt`, the file where ftp.gnu.org
@@ -145,14 +147,15 @@ A run gets four values from one vault item, `gnu`:
 
 ### 4. The zone
 
-The zone has three Cloudflare rules. Each rule is only for the hostname of the mirror. You
-set these rules one time, out of the pipeline. The pipeline does not change them.
+The zone has three Cloudflare rules for the mirror. Each rule is only for the hostnames of
+the rsync mirrors of katoptra. You set these rules one time, out of the pipeline. The
+pipeline does not change them.
 
 | Rule | Function |
 |---|---|
 | Configuration Rule | It sets Email Obfuscation, Rocket Loader, Automatic HTTPS Rewrites and Browser Integrity Check to off. The first three change the HTML between the bucket and the client. The fourth sends 403 to Perl and Python clients. If one of the four is on again, the canary check stops the run. |
 | Cache Rule | Bypass. Without this rule, a client can get a previous copy of a page or of the timestamp from the cache. |
-| Transform Rule | It changes each path with `/` at the end to `concat(http.request.uri.path, http.host, ".directory.index.html")`. This includes the root. |
+| Transform Rule | It changes each path with `/` at the end to `concat(http.request.uri.path, "katoptra.org.directory.index.html")`. This includes the root. |
 
 ### 5. Do the checks, run it, schedule it
 
