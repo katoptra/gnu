@@ -74,10 +74,9 @@ flowchart LR
   moves a file. If a listing does not have more than 40,000 lines (`LIST_FLOOR`), the run
   also stops. A short listing is not full, and the engine must not delete files because of
   it.
-- **Directory pages.** When `INDEX` has a value, the engine makes a page for each
-  directory. `PAGE_FOOT` is the last line of each page. This line identifies the mirror and
-  tells how frequently the mirror gets an update. It also gives an address for problem
-  reports.
+- **Directory pages.** When `INDEX` has a value, the engine makes a page for each directory
+  of upstream, also for a directory with no file. The footer of each page gives the same
+  directory on ftp.gnu.org (`UPSTREAM`) as text, and an address for problem reports.
   `INDEX_FILES` is `index.html index.htm`. In a directory with one of these files, the URL
   of the directory serves that file, as on ftp.gnu.org.
 - **The canary.** `CANARY` is `aspell/dict/0index.html`. This file has plain `http://`
@@ -102,7 +101,8 @@ example:
 ### 1. Fork it
 
 1. Fork [katoptra/gnu](https://github.com/katoptra/gnu).
-2. Change `HOST`, `BUCKET` and the e-mail address in `PAGE_FOOT` to your values.
+2. Change `HOST` and `BUCKET` to your values. The engine makes the e-mail address for
+   problem reports from `HOST`. If that address does not receive e-mail, set `CONTACT`.
 3. Keep `SOURCE`, or set it to a secondary mirror. GNU recommends a secondary mirror, to
    decrease the load on `ftp.gnu.org`. Use an rsync address from
    [GNU's mirror page](https://www.gnu.org/server/mirror.html). That mirror must have the

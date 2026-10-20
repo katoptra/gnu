@@ -8,7 +8,7 @@
 # The values in this file are for this mirror only:
 #   - SOURCE, HOST and BUCKET identify the mirror.
 #   - CEILING_GB and LIST_FLOOR are the limits for a run.
-#   - INDEX and PAGE_FOOT are for the directory pages.
+#   - INDEX and UPSTREAM are for the directory pages.
 #   - CANARY and FRESH_KEY are for the checks at the end of each run. The engine also sends
 #     the FRESH_KEY file to the bucket last.
 #   - NAME and DESC are for the menu.
@@ -21,7 +21,7 @@ vars:
   # SOURCE is ftp.gnu.org, the primary site of GNU. A secondary mirror gets a change
   # approximately 2 h after ftp.gnu.org.
   SOURCE: rsync://ftp.gnu.org/gnu/
-  HOST: gnu.katoptra.org  # A fork changes this line and the address in PAGE_FOOT.
+  HOST: gnu.katoptra.org  # A fork changes this line.
   # BUCKET is the name of the bucket. The objects are at its root, and their keys are GNU's
   # paths.
   BUCKET: gnu
@@ -38,10 +38,12 @@ vars:
   # INDEX_FILES are the upstream index files, in sequence. The page key of a directory with
   # such a file is a copy of that file. Thus, the URL of that directory serves the file.
   INDEX_FILES: index.html index.htm
-  # PAGE_FOOT is the last line of each directory page. In GNU's mirror guidelines, text
-  # must be short and "strictly explanatory". The only link that is permitted is a link for
-  # bug reports. That link is an email address, which must receive mail.
-  PAGE_FOOT: 'A mirror of https://ftp.gnu.org/gnu/, updated twice a day. Sizes in bytes, times as upstream lists them. Report a problem to <a href="mailto:gnu@katoptra.org">gnu@katoptra.org</a>.'
+  # UPSTREAM is the URL of this tree on ftp.gnu.org. The footer of each directory page gives
+  # it as text, with the path of the directory. In GNU's mirror guidelines, text must be
+  # short and "strictly explanatory". The only link that is permitted is a link for bug
+  # reports. The engine makes that link from HOST: gnu@katoptra.org, which must receive
+  # mail.
+  UPSTREAM: https://ftp.gnu.org/gnu/
   # CANARY is a file with 8 http:// links. If the zone uses an HTML rewriter, the rewriter
   # can change these links.
   CANARY: aspell/dict/0index.html
